@@ -15,7 +15,7 @@ import attr
 from os.path import isfile
 from typing import *
 
-from precise.functions import load_keras, false_pos, false_neg, weighted_log_loss, set_loss_bias
+from precise.functions import load_keras, false_pos, false_neg, f_score, weighted_log_loss, set_loss_bias
 from precise.params import inject_params, pr
 
 if TYPE_CHECKING:
@@ -75,7 +75,7 @@ def create_model(model_name: Optional[str], params: ModelParams) -> 'Sequential'
         model.add(Dense(1, activation='sigmoid'))
 
     load_keras()
-    metrics = ['accuracy'] + params.extra_metrics * [false_pos, false_neg]
+    metrics = ['accuracy', f_score] + params.extra_metrics * [false_pos, false_neg]
     set_loss_bias(params.loss_bias)
     for i in model.layers[:params.freeze_till]:
         i.trainable = False

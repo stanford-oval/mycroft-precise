@@ -61,12 +61,36 @@ def false_neg(yt, yp) -> Any:
     return K.sum(K.cast((1 - yp) * (0 + yt) > 0.5, 'float')) / K.maximum(1.0, K.sum(0 + yt))
 
 
+def precision(y_gold, y_pred):
+    from keras import backend as K
+    tp = K.sum(K.cast(y_gold * y_pred > 0.5, 'float'))
+    fp = K.sum(K.cast((1 - y_gold) * y_pred > 0.5, 'float'))
+    return tp / K.maximum(1.0, (tp + fp))
+
+
+def recall(y_gold, y_pred):
+    from keras import backend as K
+    tp = K.sum(K.cast(y_gold * y_pred > 0.5, 'float'))
+    fn = K.sum(K.cast(y_gold * (1 - y_pred) > 0.5, 'float'))
+    return tp / K.maximum(1.0, (tp + fn))
+
+
+def f_score(y_gold, y_pred):
+    import tensorflow as tf
+    pr = precision(y_gold, y_pred)
+    re = recall(y_gold, y_pred)
+    return tf.cond((pr + re) > 0.0,
+        lambda: (2 * pr * re) / (pr + re),
+        lambda: 0.0)
+
+
 def load_keras() -> Any:
     import keras
     keras.losses.weighted_log_loss = weighted_log_loss
     keras.metrics.false_pos = false_pos
     keras.metrics.false_positives = false_pos
     keras.metrics.false_neg = false_neg
+    keras.metrics.f_score = f_score
     return keras
 
 
