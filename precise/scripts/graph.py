@@ -141,10 +141,10 @@ def main():
     else:
         plt = load_plt()
         decoder = ThresholdDecoder(pr.threshold_config, pr.threshold_center)
-        thresholds = [decoder.encode(i) for i in np.linspace(0.0, 1.0, args.resolution)[1:-1]]
+        thresholds = [i for i in np.linspace(0.0, 1.0, args.resolution)[1:-1]]
         for model_name, stats in model_data.items():
-            x = [stats.false_positives(i) for i in thresholds]
-            y = [stats.false_negatives(i) for i in thresholds]
+            x = [stats.false_positives(decoder.encode(i)) for i in thresholds]
+            y = [stats.false_negatives(decoder.encode(i)) for i in thresholds]
             plt.plot(x, y, marker='x', linestyle='-', label=model_name)
             if args.labels:
                 for x, y, threshold in zip(x, y, thresholds):

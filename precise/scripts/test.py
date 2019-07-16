@@ -13,10 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from prettyparse import create_parser
+import numpy as np
 
 from precise.network_runner import Listener
-from precise.params import inject_params
+from precise.params import inject_params, pr
 from precise.stats import Stats
+from precise.threshold_decoder import ThresholdDecoder
 from precise.train_data import TrainData
 
 usage = '''
@@ -27,6 +29,9 @@ usage = '''
     
     :-u --use-train
         Evaluate training data instead of test data
+    
+    :-d --use-decoder
+        Use ThresholdDecoder
     
     :-nf --no-filenames
         Don't print out the names of files that failed
@@ -48,7 +53,14 @@ def main():
     inputs, targets = train if args.use_train else test
 
     filenames = sum(data.train_files if args.use_train else data.test_files, [])
-    predictions = Listener.find_runner(args.model)(args.model).predict(inputs)
+    raw_outputs = Listener.find_runner(args.model)(args.model).predict(inputs)
+    
+    if args.use_decoder:
+        decoder = ThresholdDecoder(pr.threshold_config, pr.threshold_center)
+        predictions = np.array([[decoder.decode(x[0])] for x in raw_outputs])
+    else:
+        predictions = raw_outputs
+    
     stats = Stats(predictions, targets, filenames)
 
     print('Data:', data)
