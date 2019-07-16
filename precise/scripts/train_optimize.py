@@ -78,7 +78,7 @@ class OptimizeTrainer(Trainer):
     def run(self):
         print('Writing to:', self.args.trials_name + '.bbopt.json')
         for i in range(self.args.cycles):
-            self.bb.run(backend="random")
+            self.bb.run() #backend="random")
             print("\n= %d = (example #%d)" % (i + 1, len(self.bb.get_data()["examples"]) + 1))
 
             params = ModelParams(
