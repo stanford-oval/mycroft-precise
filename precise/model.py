@@ -31,8 +31,10 @@ class ModelParams:
         extra_metrics: Whether to include false positive and false negative metrics
         skip_acc: Whether to skip accuracy calculation while training
     """
-    recurrent_units = attr.ib(20)  # type: int
-    dropout = attr.ib(0.2)  # type: float
+    recurrent_units = attr.ib(50)  # type: int
+    input_dropout = attr.ib(0.2)  # type: float
+    dropout = attr.ib(0.4) # type: float
+    weight_decay = attr.ib(1e-4) # type: float
     extra_metrics = attr.ib(False)  # type: bool
     skip_acc = attr.ib(False)  # type: bool
     loss_bias = attr.ib(0.7)  # type: float
@@ -63,21 +65,34 @@ def create_model(model_name: Optional[str], params: ModelParams) -> 'Sequential'
         print('Loading from ' + model_name + '...')
         model = load_precise_model(model_name)
     else:
-        from keras.layers.core import Dense
+        from keras.layers.core import Dense, Dropout
         from keras.layers.recurrent import GRU
         from keras.models import Sequential
+        from keras import regularizers
+
+        l2 = regularizers.l2(params.weight_decay)
 
         model = Sequential()
         model.add(GRU(
-            params.recurrent_units, activation='linear',
-            input_shape=(pr.n_features, pr.feature_size), dropout=params.dropout, name='net'
+            params.recurrent_units, activation='tanh',
+            input_shape=(pr.n_features, pr.feature_size), dropout=params.input_dropout, name='gru0',
         ))
-        model.add(Dense(1, activation='sigmoid'))
+        model.add(Dropout(params.dropout))
+        model.add(Dense(params.recurrent_units,
+                        kernel_regularizer=l2,
+                        activation='relu'))
+        model.add(Dropout(params.dropout))
+        model.add(Dense(1,
+                        kernel_regularizer=l2,
+                        activation='sigmoid'))
 
     load_keras()
     metrics = ['accuracy', f_score] + params.extra_metrics * [false_pos, false_neg]
     set_loss_bias(params.loss_bias)
     for i in model.layers[:params.freeze_till]:
         i.trainable = False
-    model.compile('rmsprop', weighted_log_loss, metrics=(not params.skip_acc) * metrics)
+    from keras import optimizers
+    
+    sgd = optimizers.SGD(lr=1.0, decay=1e-4)
+    model.compile(optimizer=sgd, loss=weighted_log_loss, metrics=(not params.skip_acc) * metrics)
     return model

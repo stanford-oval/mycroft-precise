@@ -45,7 +45,7 @@ class Trainer:
         :-s --sensitivity float 0.2
             Weighted loss bias. Higher values decrease increase positives
 
-        :-b --batch-size int 5000
+        :-b --batch-size int 64
             Batch size for training
 
         :-sb --save-best
@@ -88,9 +88,10 @@ class Trainer:
         self.model = create_model(args.model, params)
         self.train, self.test = self.load_data(self.args)
 
-        from keras.callbacks import ModelCheckpoint, TensorBoard
+        from keras.callbacks import ModelCheckpoint, TensorBoard, LearningRateScheduler
         checkpoint = ModelCheckpoint(args.model, monitor=args.metric_monitor,
-                                     save_best_only=args.save_best)
+                                     save_best_only=args.save_best,
+                                     mode=('min' if 'loss' in args.metric_monitor else 'max'))
         epoch_fiti = Fitipy(splitext(args.model)[0] + '.epoch')
         self.epoch = epoch_fiti.read().read(0, int)
 

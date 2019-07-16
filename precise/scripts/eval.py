@@ -29,7 +29,7 @@ usage = '''
     :-u --use-train
         Evaluate training data instead of test data
     
-    :-t --threshold floaat 0.5
+    :-t --threshold float 0.5
         Network output to be considered an activation
     
     :-pw --pocketsphinx-wake-word str -
