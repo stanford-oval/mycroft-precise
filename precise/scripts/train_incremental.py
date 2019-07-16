@@ -45,6 +45,9 @@ usage = '''
     
     :-th --threshold float 0.5
     	Network output to be considered activated
+    	
+    :-o --output_folder str generated
+        Subfolder where new training samples are saved
     
     ...
 '''
@@ -69,8 +72,8 @@ class IncrementalTrainer(Trainer):
         super().__init__(create_parser(usage))
 
         for i in (
-                join(self.args.folder, 'not-wake-word', 'generated'),
-                join(self.args.folder, 'test', 'not-wake-word', 'generated')
+                join(self.args.folder, 'not-wake-word', self.args.output_folder),
+                join(self.args.folder, 'test', 'not-wake-word', self.args.output_folder)
         ):
             makedirs(i, exist_ok=True)
 
@@ -125,7 +128,7 @@ class IncrementalTrainer(Trainer):
                 self.samples_since_train += 1
                 name = splitext(basename(fn))[0] + '-' + str(i) + '.wav'
                 name = join(self.args.folder, 'test' if save_test else '', 'not-wake-word',
-                            'generated', name)
+                            self.args.output_folder, name)
                 save_audio(name, self.audio_buffer)
                 print()
                 print('Saved to:', name)
