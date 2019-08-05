@@ -42,7 +42,7 @@ class TensorFlowRunner(Runner):
         self.tf = import_module('tensorflow')
         self.graph = self.load_graph(model_name)
 
-        self.inp_var = self.graph.get_operation_by_name('import/net_input').outputs[0]
+        self.inp_var = self.graph.get_operation_by_name('import/gru0_input').outputs[0]
         self.out_var = self.graph.get_operation_by_name('import/net_output').outputs[0]
 
         self.sess = self.tf.Session(graph=self.graph)

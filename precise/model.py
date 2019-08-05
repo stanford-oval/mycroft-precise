@@ -75,7 +75,7 @@ def create_model(model_name: Optional[str], params: ModelParams) -> 'Sequential'
         model = Sequential()
         model.add(GRU(
             params.recurrent_units, activation='tanh',
-            input_shape=(pr.n_features, pr.feature_size), dropout=params.input_dropout, name='gru0',
+            input_shape=(pr.n_features, pr.feature_size), dropout=params.input_dropout, name='gru0', unroll=True
         ))
         model.add(Dropout(params.dropout))
         model.add(Dense(params.recurrent_units,
